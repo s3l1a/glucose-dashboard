@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#090d16" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <title>Glucose Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131b2e;
+      --card-border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --target: #22c55e;
+      --high: #eab308;
+      --low: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1.25rem 1rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .notice { border-color: var(--high); text-align: center; }
+    .notice p { margin-top: 0.5rem; line-height: 1.4; }
+    #dataStatus { display: block; font-size: 1.1rem; color: var(--high); }
+    .hero-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem 1rem;
+    }
+    .glucose-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+    .val {
+      font-size: 6rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -3px;
+    }
+    .trend { font-size: 4rem; line-height: 1; }
+    .delta-badge {
+      display: inline-block;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2rem;
+      background: rgba(255,255,255,0.08);
+      margin-top: 0.5rem;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    @media (max-width: 600px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    .metric-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 0.75rem;
+      padding: 0.85rem 0.5rem;
+      text-align: center;
+    }
+    .metric-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+    .metric-val { font-size: 1.4rem; font-weight: 700; margin-top: 0.25rem; color: #fff; }
+    .metric-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+    .tir-wrapper { margin-top: 0.5rem; }
+    .tir-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+    .tir-bar { display: flex; height: 10px; width: 100%; border-radius: 5px; overflow: hidden; }
+    .tir-seg { height: 100%; }
+    .tir-low { background-color: var(--low); }
+    .tir-target { background-color: var(--target); }
+    .tir-high { background-color: var(--high); }
+    .chart-box { position: relative; height: 320px; width: 100%; }
+    #enableSoundBtn {
+      margin-top: 0.75rem;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--accent);
+      border-radius: 0.75rem;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    #snoozeBtn {
+      display: none;
+      width: 100%;
+      padding: 0.85rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: var(--low);
+      color: #fff;
+      border: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.75; } }
+    .telemetry-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 0.5rem 0.25rem;
+    }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 4px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card notice">
+    <strong id="dataStatus" role="status" aria-live="polite">No data loaded</strong>
+    <p><strong>Not medical advice. Not for treatment.</strong><br />Display only. Synthetic demonstrations are not medical data.</p>
+  </div>
+  <div class="card hero-card">
+    <div class="glucose-row">
+      <span id="bgVal" class="val">--</span>
+      <span id="bgTrend" class="trend"></span>
+    </div>
+    <div id="bgDelta" class="delta-badge">mg/dL &bull; Updating...</div>
+    <button id="enableSoundBtn" type="button">Enable sound</button>
+    <button id="snoozeBtn" type="button">&#128277; SNOOZE ALARM (10m)</button>
+  </div>
+  <div class="grid-4">
+    <div class="metric-card">
+      <div class="metric-title">GMI (eA1c)</div>
+      <div id="gmiVal" class="metric-val">--%</div>
+      <div class="metric-sub">Formula estimate</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Mean BG</div>
+      <div id="meanVal" class="metric-val">--</div>
+      <div class="metric-sub">12-hr Average</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Variability</div>
+      <div id="cvVal" class="metric-val">--%</div>
+      <div id="cvStatus" class="metric-sub">%CV</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">In Range</div>
+      <div id="tirTargetVal" class="metric-val">--%</div>
+      <div class="metric-sub">90-180 mg/dL</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tir-wrapper">
+      <div class="tir-header">
+        <span>Low (&lt;90): <b id="tirLowText">0%</b></span>
+        <span>Target (90-180): <b id="tirTargetText">0%</b></span>
+        <span>High (&gt;180): <b id="tirHighText">0%</b></span>
+      </div>
+      <div class="tir-bar">
+        <div id="tirLowBar" class="tir-seg tir-low" style="width: 0%;"></div>
+        <div id="tirTargetBar" class="tir-seg tir-target" style="width: 100%;"></div>
+        <div id="tirHighBar" class="tir-seg tir-high" style="width: 0%;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="chart-box">
+      <canvas id="glucoseChart"></canvas>
+    </div>
+  </div>
+  <div class="telemetry-bar">
+    <div><span class="status-dot"></span>Local engine</div>
+    <div id="telemetryData">CPU: --&deg;C | RAM: --% | Latency: --ms</div>
+  </div>
+</div>
+<script>
+  let chartInstance = null;
+  const SNOOZE_KEY = 'glucoseDashboardSnoozeUntil';
+  const SNOOZE_DURATION = 10 * 60 * 1000;
+  let audioContext = null;
+  let soundEnabled = false;
+  let tone = null;
+  let toneGain = null;
+  let toneTimer = null;
+  let lastCurrent = null;
+  let lastSynthetic = true;
+  let snoozeUntil = 0;
+  try {
+    snoozeUntil = Number(localStorage.getItem(SNOOZE_KEY)) || 0;
+  } catch (e) {
+    console.warn('Snooze storage unavailable.');
+  }
+
+  function initChart() {
+    if (typeof Chart === 'undefined') return;
+    const ctx = document.getElementById('glucoseChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Historical Glucose',
+            data: [],
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34, 197, 94, 0.08)',
+            borderWidth: 2.5,
+            pointRadius: 1,
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: '30m Forecast',
+            data: [],
+            borderColor: '#38bdf8',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            pointRadius: 2,
+            pointBackgroundColor: '#38bdf8',
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          annotation: {
+            annotations: {
+              targetRange: {
+                type: 'box',
+                yMin: 90,
+                yMax: 180,
+                backgroundColor: 'rgba(34, 197, 94, 0.06)',
+                borderWidth: 0
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', maxTicksLimit: 7 } },
+          y: { min: 40, max: 400, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } }
+        }
+      }
+    });
+  }
+
+  async function updateDashboard() {
+    try {
+      const res = await fetch('./glucose_data.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Data unavailable');
+      const data = await res.json();
+      lastSynthetic = data.synthetic === true;
+      stopTone();
+      document.getElementById('dataStatus').textContent = lastSynthetic
+        ? 'SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA'
+        : 'Private live data - do not share';
+      const cur = data.current;
+      if (!cur || !Number.isFinite(cur.value)) throw new Error('No current reading');
+      const valEl = document.getElementById('bgVal');
+      const trendEl = document.getElementById('bgTrend');
+      valEl.textContent = cur.value;
+      valEl.style.color = cur.color;
+      trendEl.textContent = cur.trend_symbol;
+      trendEl.style.color = cur.color;
+      document.getElementById('bgDelta').textContent = `${cur.delta} mg/dL \u2022 ${cur.time}`;
+
+      const stats = data.stats || {};
+      document.getElementById('gmiVal').textContent = `${stats.gmi ?? '--'}%`;
+      document.getElementById('meanVal').textContent = `${stats.mean ?? '--'}`;
+      document.getElementById('cvVal').textContent = `${stats.cv ?? '--'}%`;
+      document.getElementById('tirTargetVal').textContent = `${stats.tir_in_range ?? '--'}%`;
+      document.getElementById('tirLowBar').style.width = `${stats.tir_low ?? 0}%`;
+      document.getElementById('tirTargetBar').style.width = `${stats.tir_in_range ?? 0}%`;
+      document.getElementById('tirHighBar').style.width = `${stats.tir_high ?? 0}%`;
+      document.getElementById('tirLowText').textContent = `${stats.tir_low ?? 0}%`;
+      document.getElementById('tirTargetText').textContent = `${stats.tir_in_range ?? 0}%`;
+      document.getElementById('tirHighText').textContent = `${stats.tir_high ?? 0}%`;
+
+      const telem = data.telemetry || {};
+      document.getElementById('telemetryData').textContent =
+        `CPU: ${telem.cpu_temp ?? '--'}\u00b0C | RAM: ${telem.ram_percent ?? '--'}% | API: ${telem.api_latency_ms ?? '--'}ms`;
+
+      const history = Array.isArray(data.history) ? data.history : [];
+      const forecast = Array.isArray(data.forecast) ? data.forecast : [];
+      const histLabels = history.map(d => d.time);
+      const histVals = history.map(d => d.value);
+      const forecastData = new Array(Math.max(0, histLabels.length - 1)).fill(null);
+      forecastData.push(cur.value);
+      const forecastLabels = histLabels.length ? [...histLabels] : [cur.time];
+      forecast.slice(1).forEach(pt => {
+        forecastLabels.push(pt.time);
+        forecastData.push(pt.value);
+      });
+      if (chartInstance) {
+        chartInstance.data.labels = forecastLabels;
+        chartInstance.data.datasets[0].data = histVals;
+        chartInstance.data.datasets[0].borderColor = cur.color;
+        chartInstance.data.datasets[1].data = forecastData;
+        chartInstance.update('none');
+      }
+      lastCurrent = cur;
+      handleAlarms();
+    } catch (e) {
+      lastCurrent = null;
+      handleAlarms();
+      document.getElementById('dataStatus').textContent = 'No data loaded';
+      document.getElementById('bgVal').textContent = '--';
+      document.getElementById('bgTrend').textContent = '';
+      document.getElementById('bgDelta').textContent = 'mg/dL \u2022 Data unavailable';
+      console.error('Dashboard update failed:', e);
+    }
+  }
+
+  function stopTone() {
+    clearInterval(toneTimer);
+    toneTimer = null;
+    if (tone) {
+      tone.stop();
+      tone.disconnect();
+      toneGain.disconnect();
+      tone = null;
+      toneGain = null;
+    }
+  }
+
+  function handleAlarms() {
+    const active = lastCurrent && !lastSynthetic &&
+      (lastCurrent.is_low || lastCurrent.is_crashing) && Date.now() >= snoozeUntil;
+    document.getElementById('snoozeBtn').style.display = active ? 'block' : 'none';
+    if (!active || !soundEnabled || audioContext.state !== 'running') {
+      stopTone();
+      return;
+    }
+    if (tone) return;
+    tone = audioContext.createOscillator();
+    toneGain = audioContext.createGain();
+    tone.frequency.value = 880;
+    toneGain.gain.value = 0;
+    tone.connect(toneGain);
+    toneGain.connect(audioContext.destination);
+    tone.start();
+    const pulse = () => {
+      const now = audioContext.currentTime;
+      toneGain.gain.setValueAtTime(0, now);
+      toneGain.gain.linearRampToValueAtTime(0.12, now + 0.02);
+      toneGain.gain.setValueAtTime(0.12, now + 0.3);
+      toneGain.gain.linearRampToValueAtTime(0, now + 0.35);
+    };
+    pulse();
+    toneTimer = setInterval(pulse, 1500);
+  }
+
+  async function enableSound() {
+    const btn = document.getElementById('enableSoundBtn');
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) throw new Error('WebAudio unavailable');
+      if (!audioContext) audioContext = new AudioContextClass();
+      await audioContext.resume();
+      if (audioContext.state !== 'running') throw new Error('Sound unavailable');
+      soundEnabled = true;
+      btn.textContent = 'Sound enabled';
+      btn.disabled = true;
+      handleAlarms();
+    } catch (e) {
+      soundEnabled = false;
+      stopTone();
+      btn.textContent = 'Enable sound';
+      console.warn('Unable to enable sound.');
+    }
+  }
+
+  function snoozeAlarm() {
+    snoozeUntil = Date.now() + SNOOZE_DURATION;
+    stopTone();
+    document.getElementById('snoozeBtn').style.display = 'none';
+    try {
+      localStorage.setItem(SNOOZE_KEY, String(snoozeUntil));
+    } catch (e) {
+      console.warn('Snooze applies to this session only.');
+    }
+  }
+
+  document.getElementById('enableSoundBtn').addEventListener('click', enableSound);
+  document.getElementById('snoozeBtn').addEventListener('click', snoozeAlarm);
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {
+        console.warn('Offline shell unavailable.');
+      });
+    });
+  }
+  initChart();
+  updateDashboard();
+  setInterval(updateDashboard, 30000);
+</script>
+</body>
+</html>

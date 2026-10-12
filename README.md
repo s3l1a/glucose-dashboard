@@ -53,3 +53,7 @@ node checks.mjs
 ```
 
 The frontend is static and has no bundling step. `checks.mjs` validates its JavaScript syntax, manifest, and local asset references. Tests use only synthetic inputs and do not contact Dexcom or Telegram.
+
+## License
+
+MIT License. See [LICENSE](LICENSE).

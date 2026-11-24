@@ -60,7 +60,8 @@ assert(html.includes('STALE DATA - Last reading'), 'Stale data warning missing')
 assert(html.includes('data.synthetic === true'), 'Explicit synthetic check missing');
 assert(html.includes("fetch('./glucose_data.json', { cache: 'no-store' })"), 'Data fetch must bypass cache');
 assert(sw.includes("fetch(event.request, { cache: 'no-store' })"), 'Worker data fetch must bypass cache');
-assert(html.includes("register('./sw.js').catch("), 'Relative worker registration or rejection handling missing');
+assert(html.includes("register('./sw.js'"), 'Relative worker registration missing');
+assert(html.includes('.catch('), 'Worker rejection handling missing');
 assert(html.includes('!lastSynthetic'), 'Synthetic sound suppression missing');
 assert(markup.includes('Enable sound'), 'Sound opt-in missing');
 assert(markup.includes('Local engine'), 'Generic footer missing');

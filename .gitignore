@@ -49,6 +49,7 @@ trend_graph.*
 *.tar*
 *.gz
 *.png
+!docs/demo-preview.png
 *.jpg
 *.jpeg
 *.webp

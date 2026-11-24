@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#090d16" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
@@ -45,9 +45,9 @@
       padding: 1.25rem;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .notice { border-color: var(--high); text-align: center; }
-    .notice p { margin-top: 0.5rem; line-height: 1.4; }
-    #dataStatus { display: block; font-size: 1.1rem; color: var(--high); }
+    .notice { border-color: var(--high); text-align: center; padding: 0.95rem 1.1rem; }
+    .notice p { margin-top: 0.35rem; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+    #dataStatus { display: block; font-size: 0.95rem; color: var(--high); }
     .hero-card {
       display: flex;
       flex-direction: column;
@@ -68,15 +68,68 @@
       line-height: 1;
       letter-spacing: -3px;
     }
+    .val.stale {
+      opacity: 0.45;
+      text-decoration: line-through;
+    }
     .trend { font-size: 4rem; line-height: 1; }
     .delta-badge {
       display: inline-block;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      padding: 0.2rem 0.6rem;
+      padding: 0.25rem 0.75rem;
       border-radius: 2rem;
       background: rgba(255,255,255,0.08);
       margin-top: 0.5rem;
+    }
+    .delta-badge.stale {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--low);
+      color: #fecaca;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .range-tabs {
+      display: flex;
+      gap: 0.35rem;
+      background: rgba(255,255,255,0.03);
+      padding: 0.25rem;
+      border-radius: 0.65rem;
+      border: 1px solid var(--card-border);
+    }
+    .range-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.35rem 0.65rem;
+      border-radius: 0.45rem;
+      cursor: pointer;
+    }
+    .range-btn.active {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--accent);
+    }
+    #enableSoundBtn {
+      padding: 0.42rem 0.85rem;
+      border: 1px solid var(--card-border);
+      border-radius: 0.6rem;
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #enableSoundBtn:disabled {
+      border-color: rgba(34, 197, 94, 0.4);
+      color: var(--target);
+      cursor: default;
     }
     .grid-4 {
       display: grid;
@@ -94,28 +147,39 @@
     .metric-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; font-weight: 700; }
     .metric-val { font-size: 1.4rem; font-weight: 700; margin-top: 0.25rem; color: #fff; }
     .metric-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
-    .tir-wrapper { margin-top: 0.5rem; }
-    .tir-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+    .tir-wrapper { margin-top: 0.2rem; }
+    .tir-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; gap: 0.5rem; flex-wrap: wrap; }
     .tir-bar { display: flex; height: 10px; width: 100%; border-radius: 5px; overflow: hidden; }
     .tir-seg { height: 100%; }
     .tir-low { background-color: var(--low); }
     .tir-target { background-color: var(--target); }
     .tir-high { background-color: var(--high); }
-    .chart-box { position: relative; height: 320px; width: 100%; }
-    #enableSoundBtn {
-      margin-top: 0.75rem;
-      padding: 0.6rem 1rem;
-      border: 1px solid var(--accent);
-      border-radius: 0.75rem;
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
     }
+    .chart-legend {
+      display: flex;
+      gap: 0.85rem;
+      align-items: center;
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+    .chart-box { position: relative; height: 300px; width: 100%; }
     #snoozeBtn {
       display: none;
       width: 100%;
       padding: 0.85rem;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       background: var(--low);
       color: #fff;
@@ -133,15 +197,19 @@
       font-size: 0.75rem;
       color: var(--muted);
       padding: 0.5rem 0.25rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
-    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 4px; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 5px; }
+    .status-dot.stale { background: var(--low); }
+    .status-dot.demo { background: var(--accent); }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="card notice">
     <strong id="dataStatus" role="status" aria-live="polite">No data loaded</strong>
-    <p><strong>Not medical advice. Not for treatment.</strong><br />Display only. Synthetic demonstrations are not medical data.</p>
+    <p><strong>Not medical advice. Not for treatment.</strong> Display only. Synthetic demonstrations are not medical data.</p>
   </div>
   <div class="card hero-card">
     <div class="glucose-row">
@@ -149,37 +217,46 @@
       <span id="bgTrend" class="trend"></span>
     </div>
     <div id="bgDelta" class="delta-badge">mg/dL &bull; Updating...</div>
-    <button id="enableSoundBtn" type="button">Enable sound</button>
     <button id="snoozeBtn" type="button">&#128277; SNOOZE ALARM (10m)</button>
+  </div>
+  <div class="toolbar">
+    <div class="range-tabs" role="group" aria-label="Time window">
+      <button type="button" class="range-btn" data-range="3h">3H</button>
+      <button type="button" class="range-btn" data-range="6h">6H</button>
+      <button type="button" class="range-btn active" data-range="12h">12H</button>
+      <button type="button" class="range-btn" data-range="24h">24H</button>
+      <button type="button" class="range-btn" data-range="14d">14D</button>
+    </div>
+    <button id="enableSoundBtn" type="button">Enable sound</button>
   </div>
   <div class="grid-4">
     <div class="metric-card">
-      <div class="metric-title">GMI (eA1c)</div>
+      <div id="gmiTitle" class="metric-title">eGMI (12h)</div>
       <div id="gmiVal" class="metric-val">--%</div>
-      <div class="metric-sub">Formula estimate</div>
+      <div id="gmiSub" class="metric-sub">Short-window est.</div>
     </div>
     <div class="metric-card">
       <div class="metric-title">Mean BG</div>
       <div id="meanVal" class="metric-val">--</div>
-      <div class="metric-sub">12-hr Average</div>
+      <div id="meanSub" class="metric-sub">12h average</div>
     </div>
     <div class="metric-card">
       <div class="metric-title">Variability</div>
       <div id="cvVal" class="metric-val">--%</div>
-      <div id="cvStatus" class="metric-sub">%CV</div>
+      <div id="cvStatus" class="metric-sub">%CV (&le;36% goal)</div>
     </div>
     <div class="metric-card">
       <div class="metric-title">In Range</div>
       <div id="tirTargetVal" class="metric-val">--%</div>
-      <div class="metric-sub">90-180 mg/dL</div>
+      <div id="tirRangeSub" class="metric-sub">90-180 mg/dL</div>
     </div>
   </div>
   <div class="card">
     <div class="tir-wrapper">
       <div class="tir-header">
-        <span>Low (&lt;90): <b id="tirLowText">0%</b></span>
-        <span>Target (90-180): <b id="tirTargetText">0%</b></span>
-        <span>High (&gt;180): <b id="tirHighText">0%</b></span>
+        <span><span id="tirLowLabel">Low (&lt;90)</span>: <b id="tirLowText">0%</b></span>
+        <span><span id="tirTargetLabel">Target (90-180)</span>: <b id="tirTargetText">0%</b></span>
+        <span><span id="tirHighLabel">High (&gt;180)</span>: <b id="tirHighText">0%</b></span>
       </div>
       <div class="tir-bar">
         <div id="tirLowBar" class="tir-seg tir-low" style="width: 0%;"></div>
@@ -189,19 +266,36 @@
     </div>
   </div>
   <div class="card">
+    <div class="chart-header">
+      <span id="chartRangeLabel">Last 12 hours + 30m linear projection</span>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:#22c55e" id="histDot"></span>History</span>
+        <span><span class="legend-dot" style="background:#38bdf8"></span>30m forecast</span>
+      </div>
+    </div>
     <div class="chart-box">
       <canvas id="glucoseChart"></canvas>
     </div>
   </div>
   <div class="telemetry-bar">
-    <div><span class="status-dot"></span>Local engine</div>
+    <div><span id="engineDot" class="status-dot"></span><span id="engineStatus">Local engine</span></div>
     <div id="telemetryData">CPU: --&deg;C | RAM: --% | Latency: --ms</div>
   </div>
 </div>
 <script>
   let chartInstance = null;
   const SNOOZE_KEY = 'glucoseDashboardSnoozeUntil';
+  const RANGE_KEY = 'glucoseDashboardRange';
   const SNOOZE_DURATION = 10 * 60 * 1000;
+  const RANGE_SECONDS = {
+    '3h': 3 * 3600,
+    '6h': 6 * 3600,
+    '12h': 12 * 3600,
+    '24h': 24 * 3600,
+    '14d': 24 * 3600
+  };
+  let selectedRange = '12h';
+  let latestPayload = null;
   let audioContext = null;
   let soundEnabled = false;
   let tone = null;
@@ -210,10 +304,20 @@
   let lastCurrent = null;
   let lastSynthetic = true;
   let snoozeUntil = 0;
+
   try {
     snoozeUntil = Number(localStorage.getItem(SNOOZE_KEY)) || 0;
+    const savedRange = localStorage.getItem(RANGE_KEY);
+    if (savedRange && RANGE_SECONDS[savedRange]) selectedRange = savedRange;
   } catch (e) {
-    console.warn('Snooze storage unavailable.');
+    console.warn('Local storage unavailable.');
+  }
+
+  function formatClock(epochSec, utc) {
+    const dt = new Date(epochSec * 1000);
+    const hh = String(utc ? dt.getUTCHours() : dt.getHours()).padStart(2, '0');
+    const mm = String(utc ? dt.getUTCMinutes() : dt.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
   }
 
   function initChart() {
@@ -222,7 +326,6 @@
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: [],
         datasets: [
           {
             label: 'Historical Glucose',
@@ -230,9 +333,10 @@
             borderColor: '#22c55e',
             backgroundColor: 'rgba(34, 197, 94, 0.08)',
             borderWidth: 2.5,
-            pointRadius: 1,
+            pointRadius: 1.2,
             fill: true,
-            tension: 0.3
+            tension: 0.25,
+            spanGaps: false
           },
           {
             label: '30m Forecast',
@@ -240,17 +344,23 @@
             borderColor: '#38bdf8',
             borderDash: [5, 5],
             borderWidth: 2,
-            pointRadius: 2,
+            pointRadius: 2.5,
             pointBackgroundColor: '#38bdf8',
             fill: false
           }
         ]
       },
       options: {
+        parsing: false,
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => items.length ? formatClock(items[0].parsed.x, lastSynthetic) : ''
+            }
+          },
           annotation: {
             annotations: {
               targetRange: {
@@ -259,16 +369,178 @@
                 yMax: 180,
                 backgroundColor: 'rgba(34, 197, 94, 0.06)',
                 borderWidth: 0
+              },
+              lowLine: {
+                type: 'line',
+                yMin: 90,
+                yMax: 90,
+                borderColor: 'rgba(239, 68, 68, 0.35)',
+                borderWidth: 1,
+                borderDash: [4, 4]
+              },
+              highLine: {
+                type: 'line',
+                yMin: 180,
+                yMax: 180,
+                borderColor: 'rgba(234, 179, 8, 0.3)',
+                borderWidth: 1,
+                borderDash: [4, 4]
               }
             }
           }
         },
         scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', maxTicksLimit: 7 } },
-          y: { min: 40, max: 400, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } }
+          x: {
+            type: 'linear',
+            grid: { color: 'rgba(255,255,255,0.03)' },
+            ticks: {
+              color: '#64748b',
+              maxTicksLimit: 7,
+              callback: value => formatClock(value, lastSynthetic)
+            }
+          },
+          y: {
+            min: 40,
+            max: 400,
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: '#64748b' }
+          }
         }
       }
     });
+  }
+
+  function syncRangeButtons() {
+    document.querySelectorAll('.range-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.range === selectedRange);
+    });
+  }
+
+  function renderPayload(data) {
+    lastSynthetic = data.synthetic === true;
+    const cfg = data.config || {
+      unit: 'mg/dL',
+      unit_key: 'mgdl',
+      low: 90,
+      high: 180,
+      stale_minutes: 15
+    };
+    const cur = data.current;
+    if (!cur || !Number.isFinite(cur.value)) throw new Error('No current reading');
+
+    const unit = cur.unit || cfg.unit || 'mg/dL';
+    const nowSec = Math.floor(Date.now() / 1000);
+    const ageMin = lastSynthetic
+      ? 0
+      : (cur.timestamp ? Math.max(0, Math.round((nowSec - cur.timestamp) / 60)) : (cur.age_minutes || 0));
+    const staleLimit = cfg.stale_minutes || 15;
+    const isStale = !lastSynthetic && (cur.is_stale === true || ageMin > staleLimit);
+
+    document.getElementById('dataStatus').textContent = lastSynthetic
+      ? 'SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA'
+      : (isStale ? `STALE DATA - Last reading ${ageMin}m ago` : 'Private live data - do not share');
+
+    const dotEl = document.getElementById('engineDot');
+    const engineTextEl = document.getElementById('engineStatus');
+    dotEl.className = 'status-dot' + (lastSynthetic ? ' demo' : (isStale ? ' stale' : ''));
+    engineTextEl.textContent = lastSynthetic
+      ? 'Local engine (synthetic)'
+      : (isStale ? `Local engine (stale: ${ageMin}m)` : 'Local engine');
+
+    const valEl = document.getElementById('bgVal');
+    const trendEl = document.getElementById('bgTrend');
+    const deltaEl = document.getElementById('bgDelta');
+    valEl.textContent = cur.value;
+    valEl.style.color = cur.color;
+    valEl.classList.toggle('stale', isStale);
+    trendEl.textContent = cur.trend_symbol;
+    trendEl.style.color = cur.color;
+
+    const ageLabel = lastSynthetic ? cur.time : `${cur.time} (${ageMin}m ago)`;
+    deltaEl.textContent = `${cur.delta} ${unit} \u2022 ${ageLabel}`;
+    deltaEl.classList.toggle('stale', isStale);
+
+    const byRange = data.stats_by_range || {};
+    const stats = byRange[selectedRange] || data.stats || {};
+    const isFullGmi = selectedRange === '14d' && (stats.count || 0) >= 288;
+    document.getElementById('gmiTitle').textContent = selectedRange === '14d' ? 'GMI (14d)' : `eGMI (${selectedRange})`;
+    document.getElementById('gmiSub').textContent = isFullGmi ? '14d formula est.' : `${ stats.count || 0 } readings`;
+    document.getElementById('gmiVal').textContent = `${stats.gmi ?? '--'}%`;
+    document.getElementById('meanVal').textContent = `${stats.mean ?? '--'}`;
+    document.getElementById('meanSub').textContent = `${selectedRange.toUpperCase()} avg (${unit})`;
+    document.getElementById('cvVal').textContent = `${stats.cv ?? '--'}%`;
+    document.getElementById('tirTargetVal').textContent = `${stats.tir_in_range ?? '--'}%`;
+    document.getElementById('tirRangeSub').textContent = `${cfg.low}-${cfg.high} ${unit}`;
+
+    document.getElementById('tirLowLabel').textContent = `Low (<${cfg.low})`;
+    document.getElementById('tirTargetLabel').textContent = `Target (${cfg.low}-${cfg.high})`;
+    document.getElementById('tirHighLabel').textContent = `High (>${cfg.high})`;
+    document.getElementById('tirLowBar').style.width = `${stats.tir_low ?? 0}%`;
+    document.getElementById('tirTargetBar').style.width = `${stats.tir_in_range ?? 0}%`;
+    document.getElementById('tirHighBar').style.width = `${stats.tir_high ?? 0}%`;
+    document.getElementById('tirLowText').textContent = `${stats.tir_low ?? 0}%`;
+    document.getElementById('tirTargetText').textContent = `${stats.tir_in_range ?? 0}%`;
+    document.getElementById('tirHighText').textContent = `${stats.tir_high ?? 0}%`;
+
+    const telem = data.telemetry || {};
+    document.getElementById('telemetryData').textContent =
+      `CPU: ${telem.cpu_temp ?? '--'}\u00b0C | RAM: ${telem.ram_percent ?? '--'}% | API: ${telem.api_latency_ms ?? '--'}ms`;
+
+    const history = Array.isArray(data.history) ? data.history : [];
+    const forecast = Array.isArray(data.forecast) ? data.forecast : [];
+    const chartWindowSec = RANGE_SECONDS[selectedRange] || (12 * 3600);
+    const anchorTs = cur.timestamp || (history.length ? history[history.length - 1].timestamp : nowSec);
+    const minTs = anchorTs - chartWindowSec;
+
+    const chartLabelMap = {
+      '3h': 'Last 3 hours + 30m linear projection',
+      '6h': 'Last 6 hours + 30m linear projection',
+      '12h': 'Last 12 hours + 30m linear projection',
+      '24h': 'Last 24 hours + 30m linear projection',
+      '14d': 'Last 24h trace (metrics above show stored 14d window)'
+    };
+    document.getElementById('chartRangeLabel').textContent = chartLabelMap[selectedRange];
+    document.getElementById('histDot').style.background = cur.color;
+
+    const histPoints = [];
+    let prevTs = null;
+    history.forEach((pt, idx) => {
+      const ts = pt.timestamp ?? (anchorTs - (history.length - 1 - idx) * 300);
+      if (ts < minTs) return;
+      if (prevTs !== null && ts - prevTs > 900) {
+        histPoints.push({ x: prevTs + 60, y: null });
+      }
+      histPoints.push({ x: ts, y: pt.value });
+      prevTs = ts;
+    });
+
+    const forecastPoints = forecast.map((pt, idx) => ({
+      x: pt.timestamp ?? (anchorTs + idx * 600),
+      y: pt.value
+    }));
+
+    if (chartInstance) {
+      const isMmol = cfg.unit_key === 'mmol';
+      chartInstance.options.scales.y.min = isMmol ? 2.2 : 40;
+      chartInstance.options.scales.y.max = isMmol ? 22.2 : 400;
+      const ann = chartInstance.options.plugins.annotation.annotations;
+      ann.targetRange.yMin = cfg.low;
+      ann.targetRange.yMax = cfg.high;
+      ann.lowLine.yMin = cfg.low;
+      ann.lowLine.yMax = cfg.low;
+      ann.highLine.yMin = cfg.high;
+      ann.highLine.yMax = cfg.high;
+      const maxTs = forecastPoints.length ? forecastPoints[forecastPoints.length - 1].x : anchorTs;
+      chartInstance.options.scales.x.min = minTs;
+      chartInstance.options.scales.x.max = maxTs;
+      chartInstance.data.datasets[0].data = histPoints;
+      chartInstance.data.datasets[0].borderColor = cur.color;
+      chartInstance.data.datasets[1].data = isStale ? [] : forecastPoints;
+      chartInstance.update('none');
+    }
+
+    lastCurrent = Object.assign({}, cur, { is_stale: isStale });
+    handleAlarms();
   }
 
   async function updateDashboard() {
@@ -276,57 +548,9 @@
       const res = await fetch('./glucose_data.json', { cache: 'no-store' });
       if (!res.ok) throw new Error('Data unavailable');
       const data = await res.json();
-      lastSynthetic = data.synthetic === true;
       stopTone();
-      document.getElementById('dataStatus').textContent = lastSynthetic
-        ? 'SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA'
-        : 'Private live data - do not share';
-      const cur = data.current;
-      if (!cur || !Number.isFinite(cur.value)) throw new Error('No current reading');
-      const valEl = document.getElementById('bgVal');
-      const trendEl = document.getElementById('bgTrend');
-      valEl.textContent = cur.value;
-      valEl.style.color = cur.color;
-      trendEl.textContent = cur.trend_symbol;
-      trendEl.style.color = cur.color;
-      document.getElementById('bgDelta').textContent = `${cur.delta} mg/dL \u2022 ${cur.time}`;
-
-      const stats = data.stats || {};
-      document.getElementById('gmiVal').textContent = `${stats.gmi ?? '--'}%`;
-      document.getElementById('meanVal').textContent = `${stats.mean ?? '--'}`;
-      document.getElementById('cvVal').textContent = `${stats.cv ?? '--'}%`;
-      document.getElementById('tirTargetVal').textContent = `${stats.tir_in_range ?? '--'}%`;
-      document.getElementById('tirLowBar').style.width = `${stats.tir_low ?? 0}%`;
-      document.getElementById('tirTargetBar').style.width = `${stats.tir_in_range ?? 0}%`;
-      document.getElementById('tirHighBar').style.width = `${stats.tir_high ?? 0}%`;
-      document.getElementById('tirLowText').textContent = `${stats.tir_low ?? 0}%`;
-      document.getElementById('tirTargetText').textContent = `${stats.tir_in_range ?? 0}%`;
-      document.getElementById('tirHighText').textContent = `${stats.tir_high ?? 0}%`;
-
-      const telem = data.telemetry || {};
-      document.getElementById('telemetryData').textContent =
-        `CPU: ${telem.cpu_temp ?? '--'}\u00b0C | RAM: ${telem.ram_percent ?? '--'}% | API: ${telem.api_latency_ms ?? '--'}ms`;
-
-      const history = Array.isArray(data.history) ? data.history : [];
-      const forecast = Array.isArray(data.forecast) ? data.forecast : [];
-      const histLabels = history.map(d => d.time);
-      const histVals = history.map(d => d.value);
-      const forecastData = new Array(Math.max(0, histLabels.length - 1)).fill(null);
-      forecastData.push(cur.value);
-      const forecastLabels = histLabels.length ? [...histLabels] : [cur.time];
-      forecast.slice(1).forEach(pt => {
-        forecastLabels.push(pt.time);
-        forecastData.push(pt.value);
-      });
-      if (chartInstance) {
-        chartInstance.data.labels = forecastLabels;
-        chartInstance.data.datasets[0].data = histVals;
-        chartInstance.data.datasets[0].borderColor = cur.color;
-        chartInstance.data.datasets[1].data = forecastData;
-        chartInstance.update('none');
-      }
-      lastCurrent = cur;
-      handleAlarms();
+      latestPayload = data;
+      renderPayload(data);
     } catch (e) {
       lastCurrent = null;
       handleAlarms();
@@ -351,7 +575,7 @@
   }
 
   function handleAlarms() {
-    const active = lastCurrent && !lastSynthetic &&
+    const active = lastCurrent && !lastSynthetic && !lastCurrent.is_stale &&
       (lastCurrent.is_low || lastCurrent.is_crashing) && Date.now() >= snoozeUntil;
     document.getElementById('snoozeBtn').style.display = active ? 'block' : 'none';
     if (!active || !soundEnabled || audioContext.state !== 'running') {
@@ -408,6 +632,19 @@
     }
   }
 
+  document.querySelectorAll('.range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedRange = btn.dataset.range;
+      syncRangeButtons();
+      try {
+        localStorage.setItem(RANGE_KEY, selectedRange);
+      } catch (e) {
+        console.warn('Range preference applies to this session only.');
+      }
+      if (latestPayload) renderPayload(latestPayload);
+    });
+  });
+
   document.getElementById('enableSoundBtn').addEventListener('click', enableSound);
   document.getElementById('snoozeBtn').addEventListener('click', snoozeAlarm);
   if ('serviceWorker' in navigator) {
@@ -417,6 +654,7 @@
       });
     });
   }
+  syncRangeButtons();
   initChart();
   updateDashboard();
   setInterval(updateDashboard, 30000);

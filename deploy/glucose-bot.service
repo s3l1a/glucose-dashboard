@@ -1,0 +1,17 @@
+[Unit]
+Description=Glucose Dashboard Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=app
+WorkingDirectory=/opt/glucose-dashboard
+ExecStart=/opt/glucose-dashboard/.venv/bin/python /opt/glucose-dashboard/glucose_bot.py
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -50,11 +50,13 @@ for (const library of libraries) {
 
 const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
   .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '');
+assert(!/user-scalable\s*=\s*no|maximum-scale\s*=\s*1/i.test(html), 'Viewport blocks pinch-zoom');
 assert(/Not medical advice\. Not for treatment\./.test(markup), 'Permanent disclaimer missing');
 assert(markup.includes('Synthetic demonstrations are not medical data.'), 'Permanent demo wording missing');
 assert(/id="dataStatus"[^>]*>No data loaded<\//.test(markup), 'Default data banner missing');
 assert(html.includes('SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA'), 'Synthetic banner missing');
 assert(html.includes('Private live data - do not share'), 'Live banner missing');
+assert(html.includes('STALE DATA - Last reading'), 'Stale data warning missing');
 assert(html.includes('data.synthetic === true'), 'Explicit synthetic check missing');
 assert(html.includes("fetch('./glucose_data.json', { cache: 'no-store' })"), 'Data fetch must bypass cache');
 assert(sw.includes("fetch(event.request, { cache: 'no-store' })"), 'Worker data fetch must bypass cache');
@@ -62,6 +64,9 @@ assert(html.includes("register('./sw.js').catch("), 'Relative worker registratio
 assert(html.includes('!lastSynthetic'), 'Synthetic sound suppression missing');
 assert(markup.includes('Enable sound'), 'Sound opt-in missing');
 assert(markup.includes('Local engine'), 'Generic footer missing');
+for (const range of ['3h', '6h', '12h', '24h', '14d']) {
+  assert(html.includes(`data-range="${range}"`), `Missing range selector: ${range}`);
+}
 assert(!/alarm\.mp3|<audio\b|tailscale|dexcom|pi engine|flaticon/i.test(html + sw + JSON.stringify(manifest)), 'Excluded branding or audio asset');
 
 const allowed = new Set(['index.html', 'manifest.json', 'sw.js', 'icon.svg']);
@@ -72,4 +77,4 @@ for (const name of readdirSync(web)) {
   assert(!/[^\x00-\x7f]/.test(readFileSync(resolve(web, name), 'utf8')), `Non-ASCII source: ${name}`);
 }
 assert(!/[^\x00-\x7f]/.test(readFileSync(fileURLToPath(import.meta.url), 'utf8')), 'Non-ASCII checks source');
-console.log('Checks passed: JavaScript syntax, manifest, local assets, pinned libraries, safety wording, ASCII-only clean export.');
+console.log('Checks passed: JavaScript syntax, manifest, local assets, pinned libraries, accessibility, safety wording, ASCII-only clean export.');

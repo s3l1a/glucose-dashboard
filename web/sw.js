@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glucose-dashboard-shell-v3';
+const CACHE_NAME = 'glucose-dashboard-shell-v4';
 const ASSETS = [
   './',
   './index.html',

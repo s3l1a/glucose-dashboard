@@ -45,7 +45,7 @@
       padding: 1.25rem;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .notice { border-color: var(--high); text-align: center; padding: 0.95rem 1.1rem; }
+    .notice { display: none; border-color: var(--high); text-align: center; padding: 0.95rem 1.1rem; }
     .notice p { margin-top: 0.35rem; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
     #dataStatus { display: block; font-size: 0.95rem; color: var(--high); }
     .hero-card {
@@ -207,9 +207,9 @@
 </head>
 <body>
 <div class="container">
-  <div class="card notice">
-    <strong id="dataStatus" role="status" aria-live="polite">No data loaded</strong>
-    <p><strong>Not medical advice. Not for treatment.</strong> Display only. Synthetic demonstrations are not medical data.</p>
+  <div id="noticeCard" class="card notice">
+    <strong id="dataStatus" role="status" aria-live="polite"></strong>
+    <p id="noticeSub"><strong>Not medical advice. Not for treatment.</strong> Display only. Synthetic demonstrations are not medical data.</p>
   </div>
   <div class="card hero-card">
     <div class="glucose-row">
@@ -436,9 +436,20 @@
     const staleLimit = cfg.stale_minutes || 15;
     const isStale = !lastSynthetic && (cur.is_stale === true || ageMin > staleLimit);
 
-    document.getElementById('dataStatus').textContent = lastSynthetic
-      ? 'SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA'
-      : (isStale ? `STALE DATA - Last reading ${ageMin}m ago` : 'Private live data - do not share');
+    const noticeCard = document.getElementById('noticeCard');
+    const noticeSub = document.getElementById('noticeSub');
+    if (lastSynthetic) {
+      noticeCard.style.display = 'block';
+      noticeSub.style.display = 'block';
+      document.getElementById('dataStatus').textContent = 'SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA';
+    } else if (isStale) {
+      noticeCard.style.display = 'block';
+      noticeSub.style.display = 'none';
+      document.getElementById('dataStatus').textContent = `STALE DATA - Last reading ${ageMin}m ago`;
+    } else {
+      noticeCard.style.display = 'none';
+      document.getElementById('dataStatus').textContent = '';
+    }
 
     const dotEl = document.getElementById('engineDot');
     const engineTextEl = document.getElementById('engineStatus');
@@ -554,7 +565,7 @@
     } catch (e) {
       lastCurrent = null;
       handleAlarms();
-      document.getElementById('dataStatus').textContent = 'No data loaded';
+      document.getElementById('noticeCard').style.display = 'none';
       document.getElementById('bgVal').textContent = '--';
       document.getElementById('bgTrend').textContent = '';
       document.getElementById('bgDelta').textContent = 'mg/dL \u2022 Data unavailable';

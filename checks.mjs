@@ -53,9 +53,7 @@ const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
 assert(!/user-scalable\s*=\s*no|maximum-scale\s*=\s*1/i.test(html), 'Viewport blocks pinch-zoom');
 assert(/Not medical advice\. Not for treatment\./.test(markup), 'Permanent disclaimer missing');
 assert(markup.includes('Synthetic demonstrations are not medical data.'), 'Permanent demo wording missing');
-assert(/id="dataStatus"[^>]*>No data loaded<\//.test(markup), 'Default data banner missing');
 assert(html.includes('SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA'), 'Synthetic banner missing');
-assert(html.includes('Private live data - do not share'), 'Live banner missing');
 assert(html.includes('STALE DATA - Last reading'), 'Stale data warning missing');
 assert(html.includes('data.synthetic === true'), 'Explicit synthetic check missing');
 assert(html.includes("fetch('./glucose_data.json', { cache: 'no-store' })"), 'Data fetch must bypass cache');

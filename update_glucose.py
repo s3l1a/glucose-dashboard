@@ -327,9 +327,6 @@ def build_payload(bg, history, telemetry, synthetic=False, config=None, now_ts=N
     return {
         "synthetic": synthetic,
         "generated_at": ref_now,
-        "data_source": "SYNTHETIC DEMONSTRATION - NOT MEDICAL DATA"
-        if synthetic
-        else "Private live data",
         "config": {
             "unit": cfg["unit"],
             "unit_key": unit_key,

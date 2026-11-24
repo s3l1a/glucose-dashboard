@@ -106,7 +106,6 @@ class CalculationTests(unittest.TestCase):
         payload = update_glucose.build_payload(readings[0], readings, {}, synthetic=True)
         self.assertTrue(payload["synthetic"])
         self.assertTrue(payload["current"]["synthetic"])
-        self.assertIn("SYNTHETIC", payload["data_source"])
         self.assertIn("14d", payload["stats_by_range"])
         self.assertEqual([point["value"] for point in payload["history"]], [120, 125, 130])
 
